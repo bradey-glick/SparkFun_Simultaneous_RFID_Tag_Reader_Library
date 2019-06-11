@@ -22,11 +22,16 @@ void setup()
 {
   Bridge.begin();
   Console.begin();
+  
   while (!Console); //Wait for the serial port to come online
+  Console.println();
+  Console.println("Initializing...");
+
 
   if (setupNano(38400) == false) //Configure nano to run at 38400bps
   {
-    Console.println(F("Module failed to respond. Please check wiring."));
+    Console.println("Module failed to respond. Please check wiring.");
+    while (1); //Freeze!
   }
 
   nano.setRegion(REGION_NORTHAMERICA); //Set to North America
