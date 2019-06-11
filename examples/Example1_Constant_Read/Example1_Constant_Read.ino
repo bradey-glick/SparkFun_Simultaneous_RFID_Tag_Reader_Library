@@ -11,21 +11,22 @@
 */
 
 #include <SoftwareSerial.h> //Used for transmitting to the device
+#include <Console.h>
 
-SoftwareSerial softSerial(2, 3); //RX, TX
+SoftwareSerial softSerial(0, 1); //RX, TX
 
 #include "SparkFun_UHF_RFID_Reader.h" //Library for controlling the M6E Nano module
 RFID nano; //Create instance
 
 void setup()
 {
-  Serial.begin(115200);
-  while (!Serial); //Wait for the serial port to come online
+  Bridge.begin();
+  Console.begin();
+  while (!Console); //Wait for the serial port to come online
 
   if (setupNano(38400) == false) //Configure nano to run at 38400bps
   {
-    Serial.println(F("Module failed to respond. Please check wiring."));
-    while (1); //Freeze!
+    Console.println(F("Module failed to respond. Please check wiring."));
   }
 
   nano.setRegion(REGION_NORTHAMERICA); //Set to North America
@@ -33,9 +34,9 @@ void setup()
   nano.setReadPower(500); //5.00 dBm. Higher values may caues USB port to brown out
   //Max Read TX Power is 27.00 dBm and may cause temperature-limit throttling
 
-  Serial.println(F("Press a key to begin scanning for tags."));
-  while (!Serial.available()); //Wait for user to send a character
-  Serial.read(); //Throw away the user's character
+  Console.println(F("Press a key to begin scanning for tags."));
+  while (!Console.available()); //Wait for user to send a character
+  Console.read(); //Throw away the user's character
 
   nano.startReading(); //Begin scanning for tags
 }
@@ -48,7 +49,7 @@ void loop()
 
     if (responseType == RESPONSE_IS_KEEPALIVE)
     {
-      Serial.println(F("Scanning"));
+      Console.println(F("Scanning"));
     }
     else if (responseType == RESPONSE_IS_TAGFOUND)
     {
@@ -61,38 +62,38 @@ void loop()
 
       byte tagEPCBytes = nano.getTagEPCBytes(); //Get the number of bytes of EPC from response
 
-      Serial.print(F(" rssi["));
-      Serial.print(rssi);
-      Serial.print(F("]"));
+      Console.print(F(" rssi["));
+      Console.print(rssi);
+      Console.print(F("]"));
 
-      Serial.print(F(" freq["));
-      Serial.print(freq);
-      Serial.print(F("]"));
+      Console.print(F(" freq["));
+      Console.print(freq);
+      Console.print(F("]"));
 
-      Serial.print(F(" time["));
-      Serial.print(timeStamp);
-      Serial.print(F("]"));
+      Console.print(F(" time["));
+      Console.print(timeStamp);
+      Console.print(F("]"));
 
       //Print EPC bytes, this is a subsection of bytes from the response/msg array
-      Serial.print(F(" epc["));
+      Console.print(F(" epc["));
       for (byte x = 0 ; x < tagEPCBytes ; x++)
       {
         if (nano.msg[31 + x] < 0x10) Serial.print(F("0")); //Pretty print
-        Serial.print(nano.msg[31 + x], HEX);
-        Serial.print(F(" "));
+        Console.print(nano.msg[31 + x], HEX);
+        Console.print(F(" "));
       }
-      Serial.print(F("]"));
+      Console.print(F("]"));
 
-      Serial.println();
+      Console.println();
     }
     else if (responseType == ERROR_CORRUPT_RESPONSE)
     {
-      Serial.println("Bad CRC");
+      Console.println("Bad CRC");
     }
     else
     {
       //Unknown response
-      Serial.print("Unknown error");
+      Console.print("Unknown error");
     }
   }
 }
@@ -118,7 +119,7 @@ boolean setupNano(long baudRate)
     //This happens if the baud rate is correct but the module is doing a ccontinuous read
     nano.stopReading();
 
-    Serial.println(F("Module continuously reading. Asking it to stop..."));
+    Console.println(F("Module continuously reading. Asking it to stop..."));
 
     delay(1500);
   }
